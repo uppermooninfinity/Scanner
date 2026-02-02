@@ -4,19 +4,27 @@ A comprehensive Python-based Telegram bot designed for defensive website securit
 
 ## Features
 
-- **Port Scanning**: Comprehensive network port discovery and service detection
-- **Security Headers Analysis**: Evaluation of HTTP security headers
-- **SSL/TLS Assessment**: Certificate validation and configuration checks
-- **Risk Scoring**: Automated vulnerability severity assessment
-- **PDF Reports**: Professional tabular reports with findings and recommendations
+- **Deep Port Scanning**: Comprehensive network port discovery and service detection with version identification
+- **Security Headers Analysis**: Evaluation of HTTP security headers and misconfigurations
+- **SSL/TLS Assessment**: Certificate validation, cipher suite analysis, and configuration checks
+- **Cookie Security Analysis**: Detection and evaluation of session cookie security flags
+- **Technology Stack Detection**: Identification of web servers, frameworks, and technologies
+- **DNS Information**: IPv4 and IPv6 address resolution
+- **Risk Scoring**: Automated vulnerability severity assessment with weighted calculations
+- **Professional PDF Reports**: Detailed tabular reports with findings, recommendations, and best practices
+- **Interactive Telegram UI**: Inline buttons for navigation and quick access to help
 - **Real-time Updates**: Progress updates during scans
 - **Concurrent Scanning**: Support for multiple users with rate limiting
 
 ## Commands
 
-- `/start` - Welcome message and bot introduction
-- `/help` - Detailed usage instructions
-- `/vulnerscan <website>` - Perform security scan on specified website
+- `/start` - Welcome message with interactive inline buttons
+  - 📖 Help & Commands - View detailed usage instructions
+  - 🛡️ Start Scan - Get scanning guidance
+  - 📢 Channel - Join the security community channel
+  - 👨‍💻 Coder - Connect with the developer
+- `/help` - Detailed usage instructions and features
+- `/vulnerscan <website>` - Perform deep security scan on specified website
 
 ## Requirements
 
@@ -181,21 +189,26 @@ Detach with `Ctrl+B` then `D`. Reattach with `tmux attach -t vulnscanner`.
 The bot provides two types of output:
 
 1. **Telegram Message**: Formatted summary with expandable details
-   - Target information
-   - Open ports
+   - Target information (URL, hostname, IP, scan timestamp)
+   - Detected technology stack
+   - Open ports with service identification
+   - Security cookie analysis
    - Security headers status
-   - SSL/TLS information
-   - Vulnerability summary
-   - Risk score
+   - SSL/TLS certificate information
+   - Vulnerability summary with severity levels
+   - Risk score (0-100 scale)
 
 2. **PDF Report**: Comprehensive document including
-   - Executive summary
-   - Detailed port scan results
-   - Security header analysis
-   - SSL/TLS configuration
-   - Vulnerability details with severity levels
-   - Remediation recommendations
-   - Security best practices
+   - Executive summary with risk assessment
+   - Detected technologies and frameworks
+   - Cookie security analysis
+   - Detailed port scan results with versions
+   - Security header compliance analysis
+   - SSL/TLS configuration assessment
+   - Identified vulnerabilities with severity levels
+   - Detailed remediation recommendations
+   - General security best practices
+   - Legal disclaimer and usage notes
 
 ## Security Considerations
 
@@ -279,10 +292,12 @@ SCAN_TIMEOUT=600
 
 ## Limitations
 
-- Scans are limited to common ports by default
-- Deep vulnerability testing requires additional tools
+- Scans are limited to common ports by default (21, 22, 23, 25, 53, 80, 110, 143, 443, 465, 587, 993, 995, 3306, 3389, 5432, 8080, 8443)
+- Deep vulnerability testing requires proper authorization
 - Results should be verified by security professionals
 - Network firewalls may block some scan attempts
+- SSL/TLS scanning requires reachable HTTPS endpoint
+- False positives may occur due to WAF or custom configurations
 
 ## Contributing
 

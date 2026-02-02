@@ -20,6 +20,9 @@ class VulnerabilityScanner:
             'http_headers': {},
             'security_headers': {},
             'ssl_info': {},
+            'cookies': [],
+            'tech_stack': [],
+            'dns_records': {},
             'vulnerabilities': [],
             'risk_score': 0
         }
@@ -43,6 +46,9 @@ class VulnerabilityScanner:
             results['ports'] = self._scan_ports(results['ip'])
             results['http_headers'] = self._check_http_headers(url)
             results['security_headers'] = self._analyze_security_headers(results['http_headers'])
+            results['cookies'] = self._analyze_cookies(results['http_headers'])
+            results['tech_stack'] = self._detect_tech_stack(results['http_headers'])
+            results['dns_records'] = self._check_dns_info(host)
 
             if '443' in [str(p['port']) for p in results['ports']]:
                 results['ssl_info'] = self._check_ssl(host)
@@ -174,7 +180,86 @@ class VulnerabilityScanner:
                 'recommendation': 'Hide server version information in HTTP headers'
             })
 
+        for cookie in results.get('cookies', []):
+            if not cookie.get('secure') and not cookie.get('httponly'):
+                vulnerabilities.append({
+                    'type': 'Insecure Cookie',
+                    'severity': 'MEDIUM',
+                    'description': f"Cookie '{cookie['name']}' lacks Secure and HttpOnly flags",
+                    'recommendation': 'Set Secure and HttpOnly flags on all cookies'
+                })
+
+        if results['http_headers'].get('X-Content-Type-Options') == 'Missing':
+            vulnerabilities.append({
+                'type': 'MIME Type Sniffing',
+                'severity': 'LOW',
+                'description': 'X-Content-Type-Options header not set',
+                'recommendation': 'Add X-Content-Type-Options: nosniff'
+            })
+
         return vulnerabilities
+
+    def _analyze_cookies(self, headers: Dict[str, str]) -> List[Dict[str, str]]:
+        cookies = []
+        set_cookie = headers.get('Set-Cookie', '')
+
+        if set_cookie:
+            for cookie in set_cookie.split(','):
+                cookie_attrs = {}
+                parts = cookie.split(';')
+
+                if parts:
+                    cookie_name = parts[0].strip().split('=')[0]
+                    cookie_attrs['name'] = cookie_name
+                    cookie_attrs['secure'] = 'Secure' in cookie
+                    cookie_attrs['httponly'] = 'HttpOnly' in cookie
+                    cookie_attrs['samesite'] = 'SameSite' in cookie
+
+                    cookies.append(cookie_attrs)
+
+        return cookies
+
+    def _detect_tech_stack(self, headers: Dict[str, str]) -> List[str]:
+        tech_stack = []
+
+        tech_indicators = {
+            'X-Powered-By': 'X-Powered-By',
+            'Server': 'Server',
+            'X-AspNet-Version': 'ASP.NET',
+            'X-Runtime': 'Ruby',
+            'X-Frame-Options': 'Security Header',
+        }
+
+        for header, tech_name in tech_indicators.items():
+            if header in headers:
+                value = headers[header]
+                if value and value != 'Missing':
+                    tech_stack.append(f"{tech_name}: {value[:50]}")
+
+        return tech_stack
+
+    def _check_dns_info(self, host: str) -> Dict[str, str]:
+        dns_info = {}
+
+        try:
+            import socket
+
+            try:
+                ipv4 = socket.gethostbyname(host)
+                dns_info['ipv4'] = ipv4
+            except:
+                pass
+
+            try:
+                ipv6 = socket.getaddrinfo(host, None, socket.AF_INET6)[0][4][0]
+                dns_info['ipv6'] = ipv6
+            except:
+                pass
+
+        except Exception as e:
+            dns_info['error'] = str(e)
+
+        return dns_info
 
     def _calculate_risk_score(self, vulnerabilities: List[Dict[str, Any]]) -> int:
         score = 0

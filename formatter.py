@@ -20,6 +20,15 @@ class TelegramFormatter:
         message += f"📅 <b>Scan Date:</b> {results['timestamp']}\n"
         message += f"⚠️ <b>Risk Score:</b> {results['risk_score']}/100 ({risk_level})\n\n"
 
+        if results.get('tech_stack'):
+            message += f"<b>DETECTED TECHNOLOGY</b>\n"
+            message += f"━━━━━━━━━━━━━━━━\n"
+            for tech in results['tech_stack'][:5]:
+                message += f"🔧 {tech}\n"
+            if len(results['tech_stack']) > 5:
+                message += f"<i>... and {len(results['tech_stack']) - 5} more</i>\n"
+            message += "\n"
+
         if results['ports']:
             message += f"<b>OPEN PORTS ({len(results['ports'])})</b>\n"
             message += f"━━━━━━━━━━━━━━━━\n"
@@ -32,6 +41,25 @@ class TelegramFormatter:
 
             if len(results['ports']) > 10:
                 message += f"\n<i>... and {len(results['ports']) - 10} more ports</i>\n"
+            message += "\n"
+
+        if results.get('cookies'):
+            message += f"<b>COOKIES FOUND ({len(results['cookies'])})</b>\n"
+            message += f"━━━━━━━━━━━━━━━━\n"
+            for cookie in results['cookies'][:5]:
+                flags = []
+                if cookie.get('secure'):
+                    flags.append("🔒 Secure")
+                if cookie.get('httponly'):
+                    flags.append("🔐 HttpOnly")
+                if cookie.get('samesite'):
+                    flags.append("🛡️ SameSite")
+
+                flag_str = " | ".join(flags) if flags else "⚠️ No security flags"
+                message += f"🍪 {cookie['name']}: {flag_str}\n"
+
+            if len(results['cookies']) > 5:
+                message += f"<i>... and {len(results['cookies']) - 5} more cookies</i>\n"
             message += "\n"
 
         if results['security_headers']:

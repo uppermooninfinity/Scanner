@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from telegram import Update
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, ContextTypes
 from telegram.constants import ParseMode
 import os
@@ -19,9 +19,22 @@ logger = logging.getLogger(__name__)
 active_scans = {}
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [
+            InlineKeyboardButton("📖 Help & Commands", callback_data='help'),
+            InlineKeyboardButton("🛡️ Start Scan", callback_data='scan_info')
+        ],
+        [
+            InlineKeyboardButton("📢 Channel", url="https://t.me/dark_musictm"),
+            InlineKeyboardButton("👨‍💻 Coder", url="https://t.me/cyber_github")
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
     await update.message.reply_text(
         TelegramFormatter.format_start(),
-        parse_mode=ParseMode.HTML
+        parse_mode=ParseMode.HTML,
+        reply_markup=reply_markup
     )
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -122,6 +135,68 @@ async def vulnerscan_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
         if user_id in active_scans:
             del active_scans[user_id]
 
+async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    if query.data == 'help':
+        keyboard = [
+            [InlineKeyboardButton("← Back", callback_data='back_to_start')]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        await query.edit_message_text(
+            text=TelegramFormatter.format_help(),
+            parse_mode=ParseMode.HTML,
+            reply_markup=reply_markup
+        )
+
+    elif query.data == 'scan_info':
+        keyboard = [
+            [InlineKeyboardButton("← Back", callback_data='back_to_start')]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        await query.edit_message_text(
+            text=(
+                "🔍 <b>HOW TO SCAN</b>\n\n"
+                "Use the /vulnerscan command followed by a website URL:\n\n"
+                "<code>/vulnerscan example.com</code>\n"
+                "<code>/vulnerscan https://example.com</code>\n\n"
+                "<b>What Gets Scanned:</b>\n"
+                "✅ Port and service discovery\n"
+                "✅ Security header analysis\n"
+                "✅ SSL/TLS configuration\n"
+                "✅ Cookie security assessment\n"
+                "✅ Technology stack detection\n"
+                "✅ Vulnerability identification\n"
+                "✅ Risk scoring\n\n"
+                "⏱️ Scan time: 1-3 minutes\n\n"
+                "⚠️ Only scan websites you own or have permission to test!"
+            ),
+            parse_mode=ParseMode.HTML,
+            reply_markup=reply_markup
+        )
+
+    elif query.data == 'back_to_start':
+        keyboard = [
+            [
+                InlineKeyboardButton("📖 Help & Commands", callback_data='help'),
+                InlineKeyboardButton("🛡️ Start Scan", callback_data='scan_info')
+            ],
+            [
+                InlineKeyboardButton("📢 Channel", url="https://t.me/dark_musictm"),
+                InlineKeyboardButton("👨‍💻 Coder", url="https://t.me/cyber_github")
+            ]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        await query.edit_message_text(
+            text=TelegramFormatter.format_start(),
+            parse_mode=ParseMode.HTML,
+            reply_markup=reply_markup
+        )
+
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     logger.error(f"Update {update} caused error {context.error}")
 
@@ -145,6 +220,9 @@ def main():
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("vulnerscan", vulnerscan_command))
+
+    from telegram.ext import CallbackQueryHandler
+    application.add_handler(CallbackQueryHandler(button_callback))
 
     application.add_error_handler(error_handler)
 

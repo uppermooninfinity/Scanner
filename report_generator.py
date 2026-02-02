@@ -68,6 +68,58 @@ class ReportGenerator:
         story.append(summary_table)
         story.append(Spacer(1, 0.3*inch))
 
+        if scan_results.get('tech_stack'):
+            story.append(Paragraph("Detected Technology", heading_style))
+
+            tech_data = [['Technology', 'Details']]
+            for tech in scan_results['tech_stack']:
+                parts = tech.split(': ', 1)
+                tech_data.append([parts[0], parts[1] if len(parts) > 1 else tech])
+
+            tech_table = Table(tech_data, colWidths=[2*inch, 4*inch])
+            tech_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#16a085')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, -1), 9),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#ecf0f1')]),
+            ]))
+
+            story.append(tech_table)
+            story.append(Spacer(1, 0.2*inch))
+
+        if scan_results.get('cookies'):
+            story.append(Paragraph("Detected Cookies", heading_style))
+
+            cookie_data = [['Cookie Name', 'Secure', 'HttpOnly', 'SameSite']]
+            for cookie in scan_results['cookies']:
+                cookie_data.append([
+                    cookie['name'],
+                    '✓' if cookie.get('secure') else '✗',
+                    '✓' if cookie.get('httponly') else '✗',
+                    '✓' if cookie.get('samesite') else '✗'
+                ])
+
+            cookie_table = Table(cookie_data, colWidths=[2*inch, 1*inch, 1*inch, 1*inch])
+            cookie_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f39c12')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, -1), 9),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#ecf0f1')]),
+            ]))
+
+            story.append(cookie_table)
+            story.append(Spacer(1, 0.2*inch))
+
         if scan_results['ports']:
             story.append(Paragraph("Open Ports", heading_style))
 
